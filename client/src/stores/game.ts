@@ -21,7 +21,7 @@ export const useGameStore = defineStore('game', () => {
     function connect() {
         if (!socket.value) {
             // Assuming backend is on localhost:3001
-            socket.value = io('http://localhost:3001')
+            socket.value = io(`http://${window.location.hostname}:3005`)
 
             socket.value.on('room_update', (room: any) => {
                 players.value = room.players

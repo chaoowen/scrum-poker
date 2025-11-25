@@ -31,7 +31,7 @@
 cd server
 npm start
 ```
-伺服器將會在 `http://localhost:3001` 上運行。
+伺服器將會在 `http://localhost:3005` 上運行。
 
 ### 2. 啟動前端客戶端
 
@@ -39,7 +39,7 @@ npm start
 cd client
 npm run dev
 ```
-客戶端通常會在 `http://localhost:5173` (如果該端口被佔用，則可能是 `5174`) 上運行。
+客戶端通常會在 `http://localhost:5175` (如果該端口被佔用，則可能是 `5176`) 上運行。
 
 ## 使用說明
 
