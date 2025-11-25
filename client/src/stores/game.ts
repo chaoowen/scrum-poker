@@ -54,6 +54,18 @@ export const useGameStore = defineStore('game', () => {
         socket.value?.emit('reset_game', currentRoomId.value)
     }
 
+    function leaveRoom() {
+        if (currentRoomId.value) {
+            socket.value?.emit('leave_room', currentRoomId.value)
+            socket.value?.disconnect()
+            socket.value = null
+            currentRoomId.value = ''
+            players.value = []
+            gameState.value = 'waiting'
+            votes.value = {}
+        }
+    }
+
     return {
         playerName,
         currentRoomId,
@@ -64,6 +76,7 @@ export const useGameStore = defineStore('game', () => {
         startVoting,
         submitVote,
         revealVotes,
-        resetGame
+        resetGame,
+        leaveRoom
     }
 })

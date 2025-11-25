@@ -18,6 +18,10 @@ onMounted(() => {
   }
 })
 
+const allPlayersVoted = computed(() => {
+  return gameStore.players.length > 0 && gameStore.players.every(p => p.hasVoted)
+})
+
 const showStartButton = computed(() => gameStore.gameState === 'waiting')
 const showVotingControls = computed(() => gameStore.gameState === 'voting')
 const showRevealButton = computed(() => gameStore.gameState === 'voting' && gameStore.players.length > 0)
@@ -26,6 +30,11 @@ const showResetButton = computed(() => gameStore.gameState === 'revealed')
 const copyLink = () => {
   navigator.clipboard.writeText(window.location.href)
   // Could add a toast notification here
+}
+
+const handleExit = () => {
+  gameStore.leaveRoom()
+  router.push('/')
 }
 </script>
 
@@ -77,7 +86,13 @@ const copyLink = () => {
         <button 
           v-if="showRevealButton"
           @click="gameStore.revealVotes()"
-          class="bg-gray-900 hover:bg-black text-white font-medium py-2.5 px-8 rounded-lg shadow-sm transition-all"
+          :disabled="!allPlayersVoted"
+          :class="[
+            'font-medium py-2.5 px-8 rounded-lg shadow-sm transition-all',
+            allPlayersVoted 
+              ? 'bg-gray-900 hover:bg-black text-white cursor-pointer' 
+              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+          ]"
         >
           Reveal Votes
         </button>
@@ -91,7 +106,7 @@ const copyLink = () => {
             Play Again
           </button>
           <button 
-            @click="router.push('/')"
+            @click="handleExit"
             class="bg-white hover:bg-gray-50 text-gray-700 text-base font-medium py-2.5 px-8 rounded-lg border border-gray-300 transition-all"
           >
             Exit

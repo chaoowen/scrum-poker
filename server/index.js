@@ -70,8 +70,36 @@ io.on('connection', (socket) => {
 
     socket.on('reveal_votes', (roomCode) => {
         if (rooms[roomCode]) {
-            rooms[roomCode].gameState = 'revealed';
-            io.to(roomCode).emit('room_update', rooms[roomCode]);
+            const room = rooms[roomCode];
+            const allVoted = room.players.every(p => p.hasVoted);
+
+            if (allVoted) {
+                room.gameState = 'revealed';
+                io.to(roomCode).emit('room_update', room);
+            }
+        }
+    });
+
+    socket.on('leave_room', (roomCode) => {
+        if (rooms[roomCode]) {
+            const room = rooms[roomCode];
+            const index = room.players.findIndex(p => p.id === socket.id);
+
+            if (index !== -1) {
+                room.players.splice(index, 1);
+                socket.leave(roomCode);
+
+                if (room.players.length === 0) {
+                    delete rooms[roomCode];
+                } else {
+                    // Also remove their vote if they leave? 
+                    // Usually yes, otherwise we might be waiting for a ghost.
+                    if (room.votes[socket.id]) {
+                        delete room.votes[socket.id];
+                    }
+                    io.to(roomCode).emit('room_update', room);
+                }
+            }
         }
     });
 
@@ -97,6 +125,9 @@ io.on('connection', (socket) => {
                 if (room.players.length === 0) {
                     delete rooms[roomCode];
                 } else {
+                    if (room.votes[socket.id]) {
+                        delete room.votes[socket.id];
+                    }
                     io.to(roomCode).emit('room_update', room);
                 }
             }
