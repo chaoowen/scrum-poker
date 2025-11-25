@@ -9,7 +9,9 @@ app.use(cors());
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: "*", // Allow all origins for simplicity in dev
+        origin: process.env.NODE_ENV === 'production'
+            ? process.env.FRONTEND_URL || "*"  // In production, use FRONTEND_URL env var
+            : "*", // Allow all origins in development
         methods: ["GET", "POST"]
     }
 });

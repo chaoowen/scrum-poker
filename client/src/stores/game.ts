@@ -20,8 +20,9 @@ export const useGameStore = defineStore('game', () => {
 
     function connect() {
         if (!socket.value) {
-            // Assuming backend is on localhost:3001
-            socket.value = io(`http://${window.location.hostname}:3005`)
+            // Use environment variable for backend URL, fallback to localhost for development
+            const backendUrl = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3005`
+            socket.value = io(backendUrl)
 
             socket.value.on('room_update', (room: any) => {
                 players.value = room.players
