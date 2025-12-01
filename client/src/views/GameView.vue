@@ -12,9 +12,18 @@ const gameStore = useGameStore()
 const roomId = route.params.id as string
 
 onMounted(() => {
+  // If playerName is not set, try to restore from localStorage
   if (!gameStore.playerName) {
-    router.push('/')
-    return
+    const stored = gameStore.loadFromLocalStorage()
+    
+    // If we have stored data and the roomId matches the current URL, reconnect
+    if (stored && stored.currentRoomId === roomId) {
+      gameStore.joinRoom(roomId, stored.playerName)
+    } else {
+      // No valid session found, redirect to home
+      router.push('/')
+      return
+    }
   }
 })
 
@@ -48,8 +57,16 @@ const handleExit = () => {
           Copy Link
         </button>
       </div>
-      <div class="text-sm text-gray-600">
-        <span class="text-gray-400">Playing as</span> <span class="font-medium text-gray-900">{{ gameStore.playerName }}</span>
+      <div class="flex items-center gap-4">
+        <div class="text-sm text-gray-600">
+          <span class="text-gray-400">Playing as</span> <span class="font-medium text-gray-900">{{ gameStore.playerName }}</span>
+        </div>
+        <button 
+          @click="handleExit"
+          class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors cursor-pointer"
+        >
+          Home
+        </button>
       </div>
     </header>
 
@@ -83,31 +100,38 @@ const handleExit = () => {
         <!-- Voting State Actions -->
         <VotingControls v-if="showVotingControls" />
         
-        <button 
-          v-if="showRevealButton"
-          @click="gameStore.revealVotes()"
-          :disabled="!allPlayersVoted"
-          :class="[
-            'font-medium py-2.5 px-8 rounded-lg shadow-sm transition-all',
-            allPlayersVoted 
-              ? 'bg-gray-900 hover:bg-black text-white cursor-pointer' 
-              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-          ]"
-        >
-          Reveal Votes
-        </button>
+        <div v-if="showRevealButton" class="flex gap-4">
+          <button 
+            @click="gameStore.revealVotes()"
+            :disabled="!allPlayersVoted"
+            :class="[
+              'font-medium py-2.5 px-8 rounded-lg shadow-sm transition-all',
+              allPlayersVoted 
+                ? 'bg-gray-900 hover:bg-black text-white cursor-pointer' 
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            ]"
+          >
+            Reveal Votes
+          </button>
+          <button 
+            @click="gameStore.resetGame()"
+            class="bg-white hover:bg-gray-50 text-gray-700 text-base font-medium py-2.5 px-8 rounded-lg border border-gray-300 transition-all cursor-pointer"
+          >
+            Reset Game
+          </button>
+        </div>
 
         <!-- Revealed State Actions -->
         <div v-if="showResetButton" class="flex gap-4">
           <button 
             @click="gameStore.resetGame()"
-            class="bg-gray-900 hover:bg-black text-white text-base font-medium py-2.5 px-8 rounded-lg shadow-sm transition-all"
+            class="bg-gray-900 hover:bg-black text-white text-base font-medium py-2.5 px-8 rounded-lg shadow-sm transition-all cursor-pointer"
           >
             Play Again
           </button>
           <button 
             @click="handleExit"
-            class="bg-white hover:bg-gray-50 text-gray-700 text-base font-medium py-2.5 px-8 rounded-lg border border-gray-300 transition-all"
+            class="bg-white hover:bg-gray-50 text-gray-700 text-base font-medium py-2.5 px-8 rounded-lg border border-gray-300 transition-all cursor-pointer"
           >
             Exit
           </button>

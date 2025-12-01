@@ -10,6 +10,8 @@ export interface Player {
 
 export type GameState = 'waiting' | 'voting' | 'revealed'
 
+const STORAGE_KEY = 'scrum-poker-session'
+
 export const useGameStore = defineStore('game', () => {
     const playerName = ref('')
     const currentRoomId = ref('')
@@ -32,9 +34,39 @@ export const useGameStore = defineStore('game', () => {
         }
     }
 
+    function saveToLocalStorage() {
+        if (playerName.value && currentRoomId.value) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                playerName: playerName.value,
+                currentRoomId: currentRoomId.value
+            }))
+        }
+    }
+
+    function loadFromLocalStorage() {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY)
+            if (stored) {
+                const data = JSON.parse(stored)
+                return {
+                    playerName: data.playerName,
+                    currentRoomId: data.currentRoomId
+                }
+            }
+        } catch (e) {
+            console.error('Failed to load from localStorage:', e)
+        }
+        return null
+    }
+
+    function clearLocalStorage() {
+        localStorage.removeItem(STORAGE_KEY)
+    }
+
     function joinRoom(room: string, name: string) {
         playerName.value = name
         currentRoomId.value = room
+        saveToLocalStorage()
         connect()
         socket.value?.emit('join_room', { roomCode: room, name })
     }
@@ -61,9 +93,11 @@ export const useGameStore = defineStore('game', () => {
             socket.value?.disconnect()
             socket.value = null
             currentRoomId.value = ''
+            playerName.value = ''
             players.value = []
             gameState.value = 'waiting'
             votes.value = {}
+            clearLocalStorage()
         }
     }
 
@@ -78,6 +112,7 @@ export const useGameStore = defineStore('game', () => {
         submitVote,
         revealVotes,
         resetGame,
-        leaveRoom
+        leaveRoom,
+        loadFromLocalStorage
     }
 })

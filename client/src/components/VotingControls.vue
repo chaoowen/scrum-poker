@@ -1,10 +1,17 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useGameStore } from '../stores/game'
 
 const gameStore = useGameStore()
 const cards = [1, 2, 3, 5, 8, 13]
 const selected = ref<number | string | null>(null)
+
+// Reset selection when game state changes to voting (game reset)
+watch(() => gameStore.gameState, (newState, oldState) => {
+  if (newState === 'voting' && oldState === 'revealed') {
+    selected.value = null
+  }
+})
 
 const selectCard = (card: number | string) => {
   selected.value = card
@@ -36,7 +43,7 @@ const confirmVote = () => {
     <button 
       @click="confirmVote"
       :disabled="selected === null"
-      class="bg-gray-900 hover:bg-black disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium py-2.5 px-10 rounded-lg shadow-sm transition-all"
+      class="bg-gray-900 hover:bg-black disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium py-2.5 px-10 rounded-lg shadow-sm transition-all cursor-pointer"
     >
       Confirm Vote
     </button>
